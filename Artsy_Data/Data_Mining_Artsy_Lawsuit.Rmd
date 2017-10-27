@@ -1,0 +1,73 @@
+---
+title: "VCU Data Mining Assignment"
+output: html_notebook
+---
+
+### Import the Artsy Lawsuit dataset into R
+```{r}
+library(readr)
+Artsy_Lawsuit <- read_csv("Artsy Lawsuit.csv")
+```
+
+### Preview structure of Artsy Dataset  
+```{r}
+str(Artsy_Lawsuit)
+```
+#### Notice R determined that ID, Gender and Grade were integers with the default settings  
+
+### Let's change Grade from integer to factor  
+
+```{r}
+Artsy_Lawsuit$Grade <- factor(Artsy_Lawsuit$Grade,
+                              levels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+                              labels = c("grade1", "grade2", "grade3", "grade4", "grade5",
+                                         "grade6", "grade7", "grade8", "grade9","grade10"))
+```
+
+### Now that we have the correct data types, let's look at a summary of the data  
+#### We don't need to Include ID or Gender in our summary
+
+```{r}
+summary(Artsy_Lawsuit[, c(2,3,5)])
+```
+
+### Review a scatterplot of Rate and Grade  
+
+```{r}
+plot.default(Artsy_Lawsuit$Grade, Artsy_Lawsuit$Rate, xlab = "Grade", ylab = "Rate ($)")
+```
+#### It is reasonable to infer from this plot that as Grade increases, Rate increases  
+
+### Perform regression analysis and print out a summary  
+
+* We include all of the variables in our regression model except for ID
+* Additionally we include interactions between TInGrade&Gender, and TInGrade&Grade
+```{r}
+artsy_lm <- lm(Rate~. -ID +TInGrade:Gender +TInGrade:Grade, data = Artsy_Lawsuit)
+summary(artsy_lm)
+```
+
+
+### We can check to see if our model has any outliers/leverage points, and if the model violates any of the assumptions for linear regression  
+```{r}
+par(mfrow=c(2,2))
+plot(artsy_lm)
+
+```
+QQ Plot - Most of our observations fall nicely on the line. Some of our points begin to deviate at the top of the QQ Plot, but nothing that severly violates Regression assumptions.  
+Residuals vs Fitted - No funky cone patterns or anything like that.
+
+### Interpreting the Regression output  
+
+#### According to the above output, Grade is the only variable that is statistically significant.  
+#### We know this because:  
+
+* Almost all of the levels of Grade have a p-value lower than 0.05  
+* Most of the levels of Grade have a t-value greater than (or less than) 2  
+* All of the coefficients for Grade indicate a postive relationship between Rate and Grade For example; Holding other variables constant, a change from Grade 1 to Grade 4 is accompanied by a $176.83 increase in compensation rate.
+
+#### There are several indications that our model is a good fit:  
+* The Adjusted R-squared is 0.8526. This means the model explains ~85% of the variation in pay rate is explained in this model  
+* The F-statistic is much larger than 1. If our model was a poor fit we would expect an f-statistic much closer to 1  
+* The p-value is very small 2.2e-16. This tells us that at least one of our variables has an effect on Rate
+
