@@ -1,0 +1,246 @@
+---
+title: "time_series_graphics_ex"
+author: "Tommy Englert"
+date: "November 2, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(forecast)
+library(fpp2)
+library(tidyverse)
+```
+
+## EXERCISE 1  
+
+```{r}
+#help(gold)
+frequency(gold)
+
+```
+
+```{r}
+autoplot(gold)
+```
+
+Daily morning gold prices in US dollars. 
+1 January 1985 - 31 March 1989.
+
+What is the outlier in our gold time series?
+```{r}
+which.max(gold)
+```
+
+
+
+
+
+
+```{r}
+#help('woolyrnq')
+frequency(woolyrnq)
+```
+
+```{r}
+autoplot(woolyrnq)
+```
+
+Quarterly production of woollen yarn in Australia: tonnes. 
+Mar 1965 - Sep 1994.
+
+```{r}
+#help(gas)
+frequency(gas)
+
+```
+
+```{r}
+autoplot(gas)
+```
+
+Australian monthly gas production: 1956-1995.
+
+## EXERCISE 2  
+
+```{r}
+tute1 <- read.csv("tute1.csv")
+```
+Sales contains the quarterly sales for a small company over the period 1981-2005. AdBudget is the advertising budget and GDP is the gross domestic product.
+
+#### Convert the data to a time series  
+
+```{r}
+str(tute1)
+```
+
+```{r}
+mytimeseries <- ts(tute1[,-1], start = 1981, frequency = 4)
+# [,-1] removes the first column from the time series model because we don't need the quarters
+```
+
+#### Construct time series plots for each of the series
+
+```{r}
+autoplot(mytimeseries, facets = TRUE)
+```
+
+
+## EXERCISE 3  
+
+```{r}
+retaildata <- readxl::read_excel("retail.xlsx", skip = 1)
+```
+
+chose one of the 40 columns to explore
+```{r}
+myts <- ts(retaildata[,"A3349902A"], frequency=12, start=c(1982,4))
+#observations are on the first of every month
+```
+
+#### Explore your chosen time series using the following functions:  
+
+* autoplot  
+* ggseasonplot  
+* ggsubseriesplot  
+* gglagplot  
+* ggAcf
+
+Can you spot any seasonality, cyclicity and trend? 
+What do you learn about the series?
+
+```{r}
+autoplot(myts)
+```
+
+```{r}
+ggseasonplot(myts)
+```
+
+
+```{r}
+ggseasonplot(myts, polar = TRUE)
+```
+
+
+```{r}
+ggsubseriesplot(myts)
+```
+
+```{r}
+gglagplot(myts)
+```
+
+```{r}
+ggAcf(myts)
+```
+
+
+## EXERCISE 4  
+```{r}
+help(bicoal)
+```
+
+```{r}
+tsdisplay(bicoal)
+```
+
+
+```{r}
+autoplot(bicoal)
+#ggseasonplot(bicoal)
+#ggseasonplot(bicoal, polar = TRUE)
+ggsubseriesplot(bicoal)
+gglagplot(bicoal)
+ggAcf(bicoal)
+
+
+```
+
+```{r}
+autoplot(chicken)
+#ggseasonplot(chicken) <- annual data means no season plot
+#ggseasonplot(bicoal, polar = TRUE) <- annual data means no season plot
+#ggsubseriesplot(chicken) <- annual data means no subseries plot
+gglagplot(chicken)
+ggAcf(chicken)
+```
+
+```{r}
+autoplot(dole)
+ggseasonplot(dole)
+ggseasonplot(dole, polar = TRUE)
+ggsubseriesplot(dole)
+gglagplot(dole)
+ggAcf(dole)
+
+```
+
+```{r}
+str(usdeaths)
+```
+
+```{r}
+autoplot(usdeaths)
+ggseasonplot(usdeaths)
+ggseasonplot(usdeaths, polar = TRUE)
+ggsubseriesplot(usdeaths)
+gglagplot(usdeaths)
+ggAcf(usdeaths)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

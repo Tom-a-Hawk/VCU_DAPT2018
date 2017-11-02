@@ -1,0 +1,136 @@
+---
+title: "Cross Validation"
+output: html_notebook
+---
+
+#### Import the forecast package  
+```{r}
+library("forecast")
+```
+#### Read in the Amtrak Ridership Data from the working directory
+make sure your working directory is set to wherever you saved the Amtrak Data
+```{r}
+Amtrak.data <- read.csv("Amtrak data(1).csv")
+```
+#### Fit Time Series Model
+We need to tell R where our time series starts, and where it stops: 
+
+* Data starts on Jan-1991  
+* Data stops on Mar-2004   
+* Our data is monthly data, so we set our time series freq = 12
+```{r}
+ridership.ts <- ts(Amtrak.data$Ridership, start = c(1991,1), end = c(2004, 3), freq = 12)
+```
+
+
+```{r}
+plot(ridership.ts, ylab = "Ridership", xlab = "Time", bty = "l",
+     xaxt = "n", xlim = c(1991,2006.25), main = "", lty = 1)
+axis(1, at = seq(1991, 2006, 1), labels = format(seq(1991, 2006, 1)))
+```
+What do we notice about the time series plot above? We see some seasonality. This makes sense when we think about the nature of trains. We also potentially see a trend! Notice the way the time series dips down, but then comes back up. Recall the 9/11 terrorist attacks that took place in 2001. The attacks were likely a hidden driver for the increase in Amtrack ridership.  
+
+#### Seperate our dataset into training and validation sets.
+```{r}
+nValid <- 36 #validation set is 3 years long
+nTrain <- length(ridership.ts) - nValid
+train.ts <- window(ridership.ts, 
+                   start = c(1991, 1), end = c(1991, nTrain))
+valid.ts <- window(ridership.ts, 
+                   start = c(1991, nTrain+1), end = c(1991, nTrain+nValid))
+
+ridership.lm1 <-  tslm(train.ts ~ poly(trend, 2)) 
+# we choose polynomial because of the up and down shape of the previous plot
+# if the plot was more level, we would have gone with a 1st Order
+# more up and down pattern, chose 3rd Order
+ridership.lm1.pred <- forecast(ridership.lm1, h = nValid, level = 0)
+```
+
+```{r}
+plot(ridership.lm1.pred, ylim = c(1300, 2600),  ylab = "Ridership", xlab = "Time", bty = "l",
+     xaxt = "n", xlim = c(1991,2006.25), main = "", lty = 2)
+axis(1, at = seq(1991, 2006, 1), labels = format(seq(1991, 2006, 1)))
+lines(ridership.lm1$fitted, lwd = 2)
+lines(valid.ts)
+```
+Dotted line is the actual training points.Solid line is from the validation set.
+The solid black line is the linear model fit to the training set. The blue line is it's prediction. 
+This prediction is not very good!
+
+
+```{r}
+# residuals of the linear model that we fitted (Residuals of the Fitted Model)
+# How close is the black line to the dotted line
+hist(ridership.lm1.pred$residuals, ylab = "Frequency", xlab = "Fit Error", bty = "l", main = "")
+```
+There a lot of negative values. Not very symmetric. We are not capturing the deep dives down in the low ridership months.
+```{r}
+# The diff between Validation and Predicted Mean (Residuals of the Predictions)
+# How close is the blue line 
+hist(valid.ts - ridership.lm1.pred$mean, ylab = "Frequency", xlab = "Forecast Error", bty = "l", main = "")
+```
+A lot of positive values. We can see that the solid blue line is missing the pattern.
+
+### Based on the Fit Error and Forecast error, we conclude that we have a terrible time series model.  
+
+  
+#### Let's take a look at the Naive Estimator
+Fit a Naive Linear Model to the time series.
+```{r}
+ridership.lm2.pred <- naive(train.ts, h = nValid)
+```
+
+Plot the Naive Estimator  
+```{r}
+plot(ridership.lm2.pred, ylim = c(1300, 2600),  ylab = "Ridership", xlab = "Time", bty = "l",
+     xaxt = "n", xlim = c(1991,2006.25), main = "", lty = 2)
+axis(1, at = seq(1991, 2006, 1), labels = format(seq(1991, 2006, 1)))
+lines(valid.ts)
+```
+The Naive Estimator is not very good either ...  
+But at least it's catching the mean fairly well! 
+
+```{r}
+hist(ridership.lm2.pred$residuals, ylab = "Frequency", xlab = "Fit Error", bty = "l", main = "")
+```
+The residuals on the fit are not too bad  
+
+```{r}
+hist(valid.ts - ridership.lm2.pred$mean, ylab = "Frequency", xlab = "Forecast Error", bty = "l", main = "")
+```
+The residuals on the forecast are not too bad either  
+
+#### Seasonal Naive Estimator
+We are just going one season back for prediction. Example: To predict January, we use the data from last January.
+```{r}
+ridership.lm3.pred <- snaive(train.ts, h = nValid)
+plot(ridership.lm3.pred, ylim = c(1300, 2600),  ylab = "Ridership", xlab = "Time", bty = "l",
+     xaxt = "n", xlim = c(1991,2006.25), main = "", lty = 2)
+axis(1, at = seq(1991, 2006, 1), labels = format(seq(1991, 2006, 1)))
+lines(valid.ts)
+```
+Our Seasonal Naive Estimator appears to be doing quite well! But we still have some spikes that Seasonal Naive Estimator Misses.
+
+```{r}
+hist(ridership.lm3.pred$residuals, ylab = "Frequency", xlab = "Fit Error", bty = "l", main = "")
+```
+
+```{r}
+hist(valid.ts - ridership.lm3.pred$mean, ylab = "Frequency", xlab = "Forecast Error", bty = "l", main = "")
+```
+
+```{r}
+accuracy(ridership.lm1.pred$mean, valid.ts)
+```
+
+```{r}
+accuracy(ridership.lm2.pred$mean, valid.ts)
+```
+
+```{r}
+accuracy(ridership.lm3.pred$mean, valid.ts)
+```
+
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
