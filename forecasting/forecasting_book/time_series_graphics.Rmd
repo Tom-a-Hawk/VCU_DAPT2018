@@ -1,0 +1,216 @@
+---
+title: "chapter 2 - time series graphics"
+author: "Tommy Englert"
+date: "November 2, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Time Series Graphics  
+
+#### create bogus data for us to play with  
+```{r}
+data <- c(123, 39, 78, 52, 110)
+```
+## ts Objects
+#### turn data into a time series (ts) object  
+```{r}
+y <- ts(data, start = 2012)
+```
+
+#### For observations that are more frequent than once per year, we add the frequency argument  
+
+* Annual 1
+* Quarterly 4
+* Monthly 12
+* Weekly 52
+* daily 7
+
+```{r}
+# suppose we already created some dummy data and stored as variable z
+# y <- ts(z, start=2003, frequency=12)
+```
+
+## Time Plots  
+
+```{r}
+library(fpp2)
+autoplot(melsyd[,"Economy.Class"]) +
+  ggtitle("Economy class passengers: Melbourne-Sydney") +
+  xlab("Year") + ylab("Thousands")
+```
+
+
+
+
+```{r}
+autoplot(a10) +
+  ggtitle("Antidiabetic drug sales") +
+  ylab("$ million") + xlab("Year")
+```
+Notice there is a clear and increasing trend. 
+There is also a strong seasonal pattern that increases in size as the level of the series increases. 
+
+### Trend  
+A trend exists when there is a long-term increase or decrease in the data. 
+It does not have to be linear. 
+Sometimes we will refer to a trend as "changing direction", when it might go from an increasing trend to a decreasing trend. 
+
+### Seasonal  
+A seasonal pattern occurs when a time series is affected by seasonal factors such as the time of the year or the day of the week. Seasonality is always of a fixed and known frequency. 
+The monthly sales of antidiabetic drugs above shows seasonality which is induced partly by the change in the cost of the drugs at the end of the calendar year.
+
+### Cyclic  
+A cycle occurs when the data exhibit rises and falls that are not of a fixed frequency. 
+These fluctuations are usually due to economic conditions, and are often related to the "business cycle". 
+The duration of these fluctuations is usually at least 2 years. 
+
+## Seasonal Plot  
+```{r}
+ggseasonplot(a10, year.labels=TRUE, year.labels.left=TRUE) +
+  ylab("$ million") + ggtitle("Seasonal plot: antidiabetic drug sales")
+```
+
+#### A useful variation of the seasonal plot that uses polar coordinates  
+set polar=TRUE
+```{r}
+ggseasonplot(a10, polar=TRUE) +
+  ylab("$ million") + ggtitle("Polar seasonal plot: antidiabetic drug sales")
+```
+
+## Seasonal subseries plots  
+```{r}
+ggsubseriesplot(a10) + ylab("$ million") +
+  ggtitle("Seasonal subseries plot: antidiabetic drug sales")
+```
+the horizontal blue lines indicate the means for each month
+In this example, the plot is not particularly revealing
+
+## Scatterplots  
+
+monthly takings (in $million) from accommodation at hotels, motels and guest houses in Victoria (top) 
+
+total room nights for each corresponding month (in thousands)
+"Room nights" is the total number of rooms booked multiplied by the number of nights people stayed in those rooms.
+
+```{r}
+autoplot(motel[,2:1]/1000, facet=TRUE) +
+  xlab("Year") + ylab("") +
+  ggtitle("Total monthly accommodation: Victoria, Australia")
+```
+
+We can study the relationship between takings and room nights by plotting one series against the other.
+
+```{r}
+qplot(Roomnights/1000, Takings/1000, data=as.data.frame(motel)) +
+  ylab("Takings ($million)") + xlab("Room nights (thousands)")
+```
+This scatterplot helps us to visualize the relationship between the variables.
+
+## Lag Plots  
+scatterplots of quarterly Australian beer production
+the horizontal axis shows lagged values of the time series.
+the colors indicate the quarter of the variable on the vertical axis. 
+```{r}
+beer2 <- window(ausbeer, start=1992)    #window extracts a portion of the data
+gglagplot(beer2)
+```
+The relationship is strongly positive at lags 4 and 8, reflecting the strong quarterly seasonality in the data. 
+
+The negative relationship seen for lags 2 and 6 occurs because peaks (in Q4) are plotted against troughs (in Q2)
+
+## Autocorrelation
+Just as correlation measures the extent of a linear relationship between two variables, autocorrelation measures the linear relationship between lagged values of a time series.
+
+The autocorrelation coefficients are normally plotted to form the autocorrelation function or ACF. 
+The plot is also known as a correlogram.
+```{r}
+ggAcf(beer2)
+```
+r4 is higher than for the other lags. This is due to the seasonal pattern in the data: the peaks tend to be four quarters apart and the troughs tend to be two quarters apart.
+
+r2 is more negative than for the other lags because troughs tend to be two quarters behind peaks.
+
+The dashed blue lines indicate whether the correlations are significantly different from zero.
+
+
+## Trend and seasonality in ACF plots  
+
+When data have a trend, the autocorrelations for small lags tend to be large and positive because observations nearby in time are also nearby in size. So the ACF of trended time series tend to have positive values that slowly decrease as the lags increase.
+
+When data are seasonal, the autocorrelations will be larger for the seasonal lags (at multiples of the seasonal frequency) than for other lags.
+
+When data are both trended and seasonal, you see a combination of the effects in the plot below
+
+```{r}
+aelec <- window(elec, start=1980)
+autoplot(aelec) + xlab("Year") + ylab("GWh")
+```
+```{r}
+ggAcf(aelec, lag=48)
+```
+The slow decrease in the ACF as the lags increase is due to the trend, while the "scalloped" shape is due the seasonality.
+
+## White Noise  
+Time series that show no autocorrelation are called "white noise"
+```{r}
+set.seed(30)
+y <- ts(rnorm(50))
+autoplot(y) + ggtitle("White noise")
+```
+```{r}
+ggAcf(y)
+```
+For white noise series, we expect each autocorrelation to be close to zero. 
+Of course, they will not be exactly equal to zero as there is some random variation.
+
+For a white noise series, we expect 95% of the spikes in the ACF to lie within ±2/???T where T is the length of the time series. 
+It is common to plot these bounds on a graph of the ACF (the blue dashed lines above). 
+If one or more large spikes are outside these bounds, or if substantially more than 5% of spikes are outside these bounds, then the series is probably not white noise.
+
+
+```{r}
+frequency(gold)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
