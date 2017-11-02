@@ -1,0 +1,64 @@
+---
+title: "Useful Plots"
+output: html_notebook
+---
+ 
+#### Use the forecast library
+```{r}
+library("forecast")
+```
+
+#### Read in the Amtrack Data
+```{r}
+Amtrak.data <- read.csv("Amtrak data(1).csv")
+```
+
+#### Fit Time Series Model to our Data
+```{r}
+ridership.ts <- ts(Amtrak.data$Ridership, start = c(1991,1), end = c(2004, 3), freq = 12)
+```
+
+#### Time Series Plot
+```{r}
+plot(ridership.ts, xlab = "Time", ylab = "Ridership", ylim = c(1300, 2300), bty = "l")
+```
+
+#### Seasonal Plot
+```{r}
+seasonplot(ridership.ts, ylab="Ridership", 
+           xlab="Year", main="Seasonal Plot", year.labels=TRUE)
+```
+Plots each month by year. We can see there's a definite pattern in our data. WE have low ridership in Jan and Feb. Ridership increases through the summer months. Ridership dips down in september and (usually) recovers by Dec. 
+
+#### Seasonal Deviation Plot
+```{r}
+monthplot(ridership.ts, ylab="Ridership", 
+           xlab="Year", main="Seasonal Deviation Plot")
+```
+Shows us the trend
+Example: The first "J" shows January versus January
+We see a repeated trend; for the first few months we see a dip, followed by a recovery. Towards the summer months we just see recovery.  
+
+#### Lag Plot for our Time Series
+```{r}
+lag.plot(ridership.ts, lags=16)
+```
+Y versus Y Lag 1, Y Lag 2, etc.  
+We can inspect for linear relationships. Notice the plots for Lag 1 and Lag 12. 
+
+#### Time Series Plot with Auto and Partial Correlation Graphs
+```{r}
+tsdisplay(ridership.ts)
+```
+In one plot we can look at our
+
+* Time Series Plot  
+* Auto Correlations  
+* Partial Auto Correlations
+We can see the Partial Correlation spikes at 1,6(neg), 7  10, 11, 12, 13(neg). Some of these patterns. don't really make any sense. 
+
+
+
+
+
+
